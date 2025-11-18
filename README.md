@@ -1,1 +1,226 @@
-# rojosgames.github.io
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RojosGames Moderator Pastes</title>
+<style>
+body{margin:0;background:#000;color:#eee;font-family:Arial,Helvetica,sans-serif}
+.wrap{max-width:800px;margin:40px auto;padding:20px}
+h2{margin:0 0 15px;font-size:22px}
+.section{background:#111;padding:18px;margin-bottom:20px;position:relative}
+.label{display:block;margin-bottom:6px;font-size:14px;color:#aaa}
+input,textarea,button{width:100%;padding:10px;border:1px solid #333;background:#000;color:#eee}
+button{cursor:pointer;border:none}
+.bantime-btn{width:auto;padding:10px 14px;background:#4b0000;color:#eee;cursor:pointer}
+.bantime-btn.active{background:#800000}
+.bantime-row{display:flex;gap:10px;flex-wrap:wrap}
+.reason{padding:12px;background:#4b0000;cursor:pointer;text-align:center}
+.reason:hover{background:#800000}
+.reason.active{outline:2px solid #fff}
+#copied{color:#0f0;margin-top:10px;font-size:14px;display:none;position:absolute;top:10px;right:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.batchLog{padding:12px;background:#4b0000;cursor:pointer}
+.batchLog:hover{background:#800000}
+.batchExpand{background:#111;padding:12px;margin-top:10px}
+.copyBtn{margin-top:8px;background:#800000;padding:8px;width:100%}
+.buttonRow{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.clearBtn{background:#550000;color:#fff;padding:10px;flex:1}
+.clearBatchBtn{background:#aa0000;color:#fff;padding:10px;flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h2>RojosGames Moderator Pastes</h2>
+
+<div class="section">
+<label class="label">User:</label>
+<input id="userInput" placeholder="Enter username">
+<label class="label" style="margin-top:12px;">User ID:</label>
+<input id="userIdInput" placeholder="Enter User ID">
+<div class="buttonRow">
+<button class="clearBtn" id="clearInputsBtn">Clear Current Input</button>
+<button class="clearBatchBtn" id="clearBatchBtn">Clear Batch</button>
+</div>
+</div>
+
+<div class="section">
+<label class="label">Ban Time:</label>
+<div class="bantime-row" id="banButtons"></div>
+<input id="customBan" placeholder="Custom Ban Time (optional)" style="margin-top:12px;">
+</div>
+
+<div class="section">
+<label class="label">Select Reason(s):</label>
+<div class="grid" id="reasons"></div>
+</div>
+
+<div class="section">
+<label class="label">Proof / Context:</label>
+<textarea id="proofInput" rows="6" placeholder="Paste links, screenshots, details"></textarea>
+</div>
+
+<div class="section">
+<button id="addBatchBtn" style="background:#800000;width:100%">Add To Batch</button>
+<div id="copied">Copied!</div>
+</div>
+
+<div class="section">
+<h3>Batch Logs</h3>
+<div id="batchPanel"></div>
+</div>
+
+<div class="section">
+<button id="buildBtn" style="background:#800000;width:100%">Copy Final Log</button>
+</div>
+
+<div class="section">
+<h3>Quick Phrases</h3>
+<div id="quickPhrases" style="max-height:200px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:10px"></div>
+</div>
+
+</div>
+
+<script>
+const banTimes=["Permanent","45d","35d","25d","5d","15d","65d"];
+let selectedBan="45d";
+const banWrap=document.getElementById("banButtons");
+banTimes.forEach(t=>{
+  const b=document.createElement("button");
+  b.className="bantime-btn";
+  b.textContent=t;
+  if(t==="45d") b.classList.add("active");
+  b.onclick=()=>{
+    selectedBan=t;
+    document.querySelectorAll(".bantime-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+  };
+  banWrap.appendChild(b);
+});
+
+const reasons=["W+S","Bypassing","Racism","Nazi","ERP","Weird Chats","Alt","Exploiting","Degenerative Avatars","Other Bad Avatars"];
+let selectedReasons=[];
+const reasonBox=document.getElementById("reasons");
+reasons.forEach(r=>{
+  const div=document.createElement("div");
+  div.className="reason";
+  div.textContent=r;
+  div.onclick=()=>{
+    if(selectedReasons.includes(r)){
+      selectedReasons=selectedReasons.filter(x=>x!==r);
+      div.classList.remove("active");
+    } else {
+      selectedReasons.push(r);
+      div.classList.add("active");
+    }
+  };
+  reasonBox.appendChild(div);
+});
+
+function copy(t){
+  navigator.clipboard.writeText(t).then(()=>{
+    const c=document.getElementById("copied");
+    c.style.display="block";
+    setTimeout(()=>c.style.display="none",900);
+  }).catch(()=>{
+    const ta=document.createElement("textarea");
+    ta.value=t;document.body.appendChild(ta);
+    ta.select();document.execCommand("copy");ta.remove();
+  });
+}
+
+document.getElementById("buildBtn").onclick=()=>{
+  const user=document.getElementById("userInput").value.trim();
+  const userId=document.getElementById("userIdInput").value.trim();
+  const proof=document.getElementById("proofInput").value.trim();
+  const custom=document.getElementById("customBan").value.trim();
+  if(!user||selectedReasons.length===0)return;
+  const ban=custom||selectedBan;
+  const out="Log for user "+user+"\nUser ID: "+(userId?userId:"(none)")+"\nReason(s): "+selectedReasons.join(", ")+" - "+ban+"\n\nProof:\n"+(proof?proof:"(none)");
+  copy(out);
+};
+
+let batchList=[];
+const batchPanel=document.getElementById("batchPanel");
+function refreshBatch(){
+  batchPanel.innerHTML="";
+  batchList.forEach((item,i)=>{
+    const div=document.createElement("div");
+    div.className="batchLog";
+    div.textContent=item.title;
+    div.onclick=()=>{
+      if(div.nextSibling && div.nextSibling.classList.contains("batchExpand")){
+        div.nextSibling.remove();
+        return;
+      }
+      const expand=document.createElement("div");
+      expand.className="batchExpand";
+      const btn1=document.createElement("button"); btn1.className="copyBtn"; btn1.textContent="Copy Title"; btn1.onclick=()=>copy(item.title);
+      const btn2=document.createElement("button"); btn2.className="copyBtn"; btn2.textContent="Copy Full Log"; btn2.onclick=()=>copy(item.body);
+      const btn3=document.createElement("button"); btn3.className="copyBtn"; btn3.textContent="Copy User ID"; btn3.onclick=()=>copy(item.userId);
+      expand.appendChild(btn1); expand.appendChild(btn2); expand.appendChild(btn3);
+      div.insertAdjacentElement("afterend",expand);
+    };
+    batchPanel.appendChild(div);
+  });
+}
+
+document.getElementById("addBatchBtn").onclick=()=>{
+  const user=document.getElementById("userInput").value.trim();
+  const userId=document.getElementById("userIdInput").value.trim();
+  const proof=document.getElementById("proofInput").value.trim();
+  const custom=document.getElementById("customBan").value.trim();
+  if(!user||selectedReasons.length===0)return;
+  const ban=custom||selectedBan;
+  const title="Log for user "+user;
+  const body=title+"\nUser ID: "+(userId?userId:"(none)")+"\nReason(s): "+selectedReasons.join(", ")+" - "+ban+"\n\nProof:\n"+(proof?proof:"(none)");
+  batchList.push({title,body,userId});
+  refreshBatch();
+  document.getElementById("userInput").value="";
+  document.getElementById("userIdInput").value="";
+  document.getElementById("proofInput").value="";
+  document.getElementById("customBan").value="";
+  selectedReasons=[];
+  document.querySelectorAll(".reason").forEach(r=>r.classList.remove("active"));
+};
+
+document.getElementById("clearInputsBtn").onclick=()=>{
+  document.getElementById("userInput").value="";
+  document.getElementById("userIdInput").value="";
+  document.getElementById("proofInput").value="";
+  document.getElementById("customBan").value="";
+  selectedReasons=[];
+  document.querySelectorAll(".reason").forEach(r=>r.classList.remove("active"));
+};
+
+document.getElementById("clearBatchBtn").onclick=()=>{
+  batchList=[];
+  refreshBatch();
+};
+
+const phrases=[
+  "User Moderated",
+  "At this time valid bans may not be appealed.",
+  "Unfortunately, Enforcement bans are automated by Roblox and I can no lift them without knowing which account was banned to cause the enforcement ban to be applied to another account.",
+  "You are on Ruben Sims condo / erp list, you may not appeal here and must appeal on his MFD form.",
+  "Try turning on your inventory, if you are still flagged by the anti alt, We can't help past this point",
+  "You have been selected for chat access, in the future do not misuse ticket categories.",
+  "Wrong ticket category or un-answered ticket.",
+  "Appealed."
+];
+
+const quickPanel=document.getElementById("quickPhrases");
+phrases.forEach(p=>{
+  const btn=document.createElement("button");
+  btn.className="bantime-btn";
+  btn.textContent=p;
+  btn.style.whiteSpace="normal"; 
+  btn.style.textAlign="left"; 
+  btn.style.padding="10px"; 
+  btn.style.fontSize="14px"; 
+  btn.onclick=()=>copy(p);
+  quickPanel.appendChild(btn);
+});
+</script>
+</body>
+</html>
