@@ -34,9 +34,9 @@ button{cursor:pointer;border:none}
 <h2>RojosGames Moderator Pastes</h2>
 
 <div class="section">
-<label class="label">User:</label>
+<label class="label">Roblox User:</label>
 <input id="userInput" placeholder="Enter username">
-<label class="label" style="margin-top:12px;">User ID:</label>
+<label class="label" style="margin-top:12px;">User ID (Add a space / blank if none):</label>
 <input id="userIdInput" placeholder="Enter User ID">
 <div class="buttonRow">
 <button class="clearBtn" id="clearInputsBtn">Clear Current Input</button>
@@ -57,7 +57,7 @@ button{cursor:pointer;border:none}
 
 <div class="section">
 <label class="label">Proof / Context:</label>
-<textarea id="proofInput" rows="6" placeholder="Paste links, and the details, unfortunately cant store anything but text here."></textarea>
+<textarea id="proofInput" rows="6" placeholder="Paste LINKS, or add context here."></textarea>
 </div>
 
 <div class="section">
@@ -142,25 +142,36 @@ document.getElementById("buildBtn").onclick=()=>{
 
 let batchList=[];
 const batchPanel=document.getElementById("batchPanel");
+
 function refreshBatch(){
   batchPanel.innerHTML="";
   batchList.forEach((item,i)=>{
     const div=document.createElement("div");
     div.className="batchLog";
     div.textContent=item.title;
+
     div.onclick=()=>{
+      const openPanel=batchPanel.querySelector(".batchExpand");
+      if(openPanel && openPanel.previousSibling!==div) openPanel.remove();
       if(div.nextSibling && div.nextSibling.classList.contains("batchExpand")){
         div.nextSibling.remove();
         return;
       }
+
       const expand=document.createElement("div");
       expand.className="batchExpand";
+
       const btn1=document.createElement("button"); btn1.className="copyBtn"; btn1.textContent="Copy Title"; btn1.onclick=()=>copy(item.title);
       const btn2=document.createElement("button"); btn2.className="copyBtn"; btn2.textContent="Copy Full Log"; btn2.onclick=()=>copy(item.body);
       const btn3=document.createElement("button"); btn3.className="copyBtn"; btn3.textContent="Copy User ID"; btn3.onclick=()=>copy(item.userId);
-      expand.appendChild(btn1); expand.appendChild(btn2); expand.appendChild(btn3);
+
+      expand.appendChild(btn1);
+      expand.appendChild(btn2);
+      expand.appendChild(btn3);
+
       div.insertAdjacentElement("afterend",expand);
     };
+
     batchPanel.appendChild(div);
   });
 }
